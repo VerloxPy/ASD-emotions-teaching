@@ -1,0 +1,215 @@
+{% extends "base.html" %}
+{% block title %}Виразне читання{% endblock %}
+{% block topbar %}{% include "partials/_lessonbar.html" %}{% endblock %}
+{% block content %}
+<section class="sheet" id="reading">
+  <h1 class="question">{{ exercise.prompt }}</h1>
+
+  {% if lines %}
+    <p class="reading-progress" id="line-progress" aria-live="polite"></p>
+
+    {% for line in lines %}
+      <article class="line" hidden>
+        {% if line.image %}
+          <img class="exercise-image" src="{{ line.image.url }}" alt="Зображення до речення">
+        {% endif %}
+        {% if line.emotion %}
+          <p class="emotion-chip" style="--emotion: {{ line.emotion.display_color }}">{{ line.emotion.name }}</p>
+        {% endif %}
+        {% if show_text %}
+          <p class="line-text">{{ line.text }}</p>
+        {% else %}
+          <details class="adult-note">
+            <summary>Для дорослого</summary>
+            <p class="line-text">{{ line.text }}</p>
+          </details>
+        {% endif %}
+        {% if line.delivery %}<p class="help">{{ line.delivery }}</p>{% endif %}
+        {% if line.audio %}<audio preload="none" src="{{ line.audio.url }}"></audio>{% else %}<p class="help">Звуку для цього речення ще немає.</p>{% endif %}
+      </article>
+    {% endfor %}
+
+    <div class="reading-controls" id="controls">
+      <button class="btn btn-big" type="button" id="btn-play">Послухати</button>
+      <p class="turn" id="turn" hidden>Твоя черга: повтори так само.</p>
+      <div class="turn-actions" id="turn-actions" hidden>
+        <button class="btn btn-quiet" type="button" id="btn-record" hidden>Записати себе</button>
+        <button class="btn btn-quiet" type="button" id="btn-self" hidden>Послухати себе</button>
+        <button class="btn" type="button" id="btn-done">Готово</button>
+      </div>
+      <p class="help" id="record-note" hidden></p>
+    </div>
+  {% else %}
+    <p class="lead">У цій вправі ще немає речень. Їх можна додати в адмінці.</p>
+    <a class="btn btn-quiet" href="{% url 'lessons:level_list' %}">До всіх вправ</a>
+  {% endif %}
+
+  <div id="feedback" class="feedback" aria-live="polite"></div>
+</section>
+
+{% if lines %}
+<script>
+(function () {
+  var lines = Array.prototype.slice.call(document.querySelectorAll("#reading .line"));
+  var total = lines.length;
+  var progress = document.getElementById("line-progress");
+  var controls = document.getElementById("controls");
+  var playBtn = document.getElementById("btn-play");
+  var turn = document.getElementById("turn");
+  var turnActions = document.getElementById("turn-actions");
+  var recordBtn = document.getElementById("btn-record");
+  var selfBtn = document.getElementById("btn-self");
+  var doneBtn = document.getElementById("btn-done");
+  var note = document.getElementById("record-note");
+  var feedback = document.getElementById("feedback");
+
+  var index = 0, replays = 0, played = false;
+  var recordedLines = {};
+  var recorder = null, stream = null, chunks = [], selfUrl = null, selfAudio = null;
+  var canRecord = !!(window.MediaRecorder && navigator.mediaDevices && navigator.mediaDevices.getUserMedia);
+
+  function narrator() { return lines[index].querySelector("audio"); }
+
+  function revealTurn() { turn.hidden = false; turnActions.hidden = false; }
+
+  function stopPlayback() {
+    var a = narrator();
+    if (a) a.pause();
+    if (selfAudio) selfAudio.pause();
+  }
+
+  function releaseStream() {
+    if (stream) { stream.getTracks().forEach(function (t) { t.stop(); }); stream = null; }
+  }
+
+  function abortRecording() {
+    if (recorder) {
+      recorder.onstop = null;
+      if (recorder.state !== "inactive") recorder.stop();
+      recorder = null;
+    }
+    releaseStream();
+  }
+
+  function clearSelf() {
+    if (selfUrl) { URL.revokeObjectURL(selfUrl); selfUrl = null; }
+    selfAudio = null;
+    selfBtn.hidden = true;
+  }
+
+  function showLine(i) {
+    stopPlayback();
+    abortRecording();
+    clearSelf();
+    index = i;
+    played = false;
+    lines.forEach(function (el, k) { el.hidden = k !== i; });
+    progress.textContent = "Речення " + (i + 1) + " з " + total;
+    turn.hidden = true;
+    turnActions.hidden = true;
+    note.hidden = true;
+    recordBtn.hidden = !canRecord;
+    recordBtn.textContent = "Записати себе";
+    recordBtn.classList.remove("is-recording");
+    var a = narrator();
+    playBtn.hidden = !a;
+    playBtn.textContent = "Послухати";
+    if (!a) revealTurn();   // звуку немає: одразу «твоя черга»
+  }
+
+  lines.forEach(function (line) {
+    var a = line.querySelector("audio");
+    if (!a) return;
+    a.addEventListener("ended", revealTurn);
+    a.addEventListener("error", revealTurn);
+  });
+
+  playBtn.addEventListener("click", function () {
+    var a = narrator();
+    if (!a) return;
+    if (played) replays += 1;
+    played = true;
+    if (selfAudio) selfAudio.pause();
+    a.currentTime = 0;
+    var promise = a.play();
+    if (promise && promise.catch) promise.catch(revealTurn);
+    playBtn.textContent = "Послухати ще раз";
+  });
+
+  recordBtn.addEventListener("click", async function () {
+    if (recorder && recorder.state === "recording") { recorder.stop(); return; }
+    stopPlayback();
+    clearSelf();
+    note.hidden = true;
+    try {
+      stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    } catch (error) {
+      note.textContent = "Мікрофон не дозволено. Можна просто повторити вголос і натиснути «Готово».";
+      note.hidden = false;
+      return;
+    }
+    chunks = [];
+    var current = new MediaRecorder(stream);
+    recorder = current;
+    current.ondataavailable = function (event) { if (event.data && event.data.size) chunks.push(event.data); };
+    current.onstop = function () {
+      releaseStream();
+      recordBtn.textContent = "Записати ще раз";
+      recordBtn.classList.remove("is-recording");
+      if (chunks.length) {
+        selfUrl = URL.createObjectURL(new Blob(chunks, { type: current.mimeType || "audio/webm" }));
+        selfAudio = new Audio(selfUrl);
+        selfBtn.hidden = false;
+        recordedLines[index] = true;
+      }
+    };
+    current.start();
+    recordBtn.textContent = "Зупинити запис";
+    recordBtn.classList.add("is-recording");
+    note.textContent = "Запис залишається на цьому пристрої й нікуди не надсилається.";
+    note.hidden = false;
+  });
+
+  selfBtn.addEventListener("click", function () {
+    if (!selfAudio) return;
+    var a = narrator();
+    if (a) a.pause();
+    selfAudio.currentTime = 0;
+    selfAudio.play();
+  });
+
+  async function finish() {
+    stopPlayback();
+    abortRecording();
+    clearSelf();
+    controls.hidden = true;
+    progress.hidden = true;
+    lines.forEach(function (el) { el.hidden = true; });
+    try {
+      var response = await fetch("{% url 'lessons:reading_result' exercise.id %}", {
+        method: "POST",
+        headers: {"Content-Type": "application/json", "X-CSRFToken": "{{ csrf_token }}"},
+        body: JSON.stringify({
+          lines_done: total,
+          replays: replays,
+          recorded: Object.keys(recordedLines).length,
+        }),
+      });
+      if (!response.ok) throw new Error("server");
+      feedback.innerHTML = await response.text();
+      window.markStepDone(parseInt(response.headers.get("X-Step-Index"), 10));
+    } catch (error) {
+      console.error(error);
+      feedback.textContent = "Не вдалося зберегти результат. Оновіть сторінку й спробуйте ще раз.";
+    }
+  }
+
+  doneBtn.addEventListener("click", function () {
+    if (index + 1 < total) { showLine(index + 1); } else { finish(); }
+  });
+
+  showLine(0);
+})();
+</script>
+{% endif %}
+{% endblock %}

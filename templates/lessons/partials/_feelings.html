@@ -1,0 +1,9 @@
+<ul class="feeling-list">
+  {% for item in emotions %}
+    <li class="feeling" style="--emotion: {{ item.color }}">
+      <span class="feeling-name">{{ item.emotion.name }}</span>
+      <span class="feeling-state">{{ item.label }}{% if show_counts and item.attempts %} · спроб: {{ item.attempts }}{% endif %}</span>
+      <span class="meter" aria-hidden="true">{% for on in item.dots %}<i class="{% if on %}on{% endif %}"></i>{% endfor %}</span>
+    </li>
+  {% endfor %}
+</ul>

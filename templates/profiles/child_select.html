@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+{% block title %}Хто навчається{% endblock %}
+{% block content %}
+<section class="sheet narrow">
+  <h1>Хто сьогодні вчиться?</h1>
+  <ul class="child-list">
+    {% for child in children %}
+      <li>
+        <form method="post">
+          {% csrf_token %}
+          <input type="hidden" name="child_id" value="{{ child.id }}">
+          <button class="option" type="submit">
+            <span class="avatar-inline" aria-hidden="true">{{ child.avatar_emoji }}</span>{{ child.nickname }}
+          </button>
+        </form>
+        <a class="tag" href="{% url 'accounts:child_edit' child.id %}">Змінити</a>
+      </li>
+    {% endfor %}
+  </ul>
+  <a class="btn btn-quiet" href="{% url 'accounts:child_add' %}">Додати дитину</a>
+</section>
+{% endblock %}

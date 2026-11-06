@@ -1,0 +1,17 @@
+<p><strong>Схожість: {{ percent }}%</strong></p>
+<meter min="0" max="100" value="{{ percent }}" style="width:100%"></meter>
+
+{% if level == "great" %}
+  <p class="ok"><strong>Чудово!</strong> Дуже схоже на «{{ target }}».</p>
+{% elif level == "good" %}
+  <p class="ok"><strong>Вже майже!</strong> Схоже на «{{ target }}». Можна ще трохи яскравіше.</p>
+{% else %}
+  <p class="try">Поки що не дуже схоже на «{{ target }}», але ти вже пробуєш, і це головне.
+  {{ hint }} Давай спробуємо ще раз.</p>
+{% endif %}
+
+{% if next_exercise %}
+  <p><a href="{% url 'lessons:exercise_detail' next_exercise.pk %}">Далі →</a></p>
+{% else %}
+  <p><a href="{% url 'lessons:level_list' %}">До списку рівнів</a></p>
+{% endif %}

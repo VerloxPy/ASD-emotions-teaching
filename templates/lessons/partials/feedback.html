@@ -1,0 +1,11 @@
+{% if is_correct %}
+  <div class="fb fb-ok">
+    <p class="fb-title">Так, правильно!</p>
+{% else %}
+  <div class="fb fb-try">
+    <p class="fb-title">Ця емоція тут не зовсім підходить 😅</p>
+    <p>Подивімося разом: більше пасує «{{ correct }}».</p>
+{% endif %}
+    {% if explanation %}<p>{{ explanation }}</p>{% endif %}
+    {% include "lessons/partials/_next.html" %}
+  </div>

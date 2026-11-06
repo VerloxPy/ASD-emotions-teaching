@@ -1,0 +1,15 @@
+<!doctype html>
+<meta charset="utf-8">
+<body style="font-family: system-ui; padding: 16px">
+<p>Друг випадково зламав твою іграшку. Що ти зробиш?</p>
+<button onclick="send('tell_feelings', true)">Скажу, що мені сумно</button>
+<button onclick="send('throw_toy', false)">Кину в нього іграшку</button>
+<script>
+function send(choice, fits) {
+  window.parent.postMessage(
+    {type: "novel_result", payload: {choice: choice, fits: fits}},
+    window.location.origin
+  );
+}
+</script>
+</body>

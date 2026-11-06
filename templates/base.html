@@ -1,0 +1,56 @@
+{% load static %}<!doctype html>
+<html lang="uk">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}Вчимося розуміти емоції{% endblock %}</title>
+  <link rel="icon" href="{% static 'favicon.svg' %}" type="image/svg+xml">
+  <link rel="icon" href="{% static 'favicon.ico' %}" sizes="48x48">
+  <link rel="apple-touch-icon" href="{% static 'apple-touch-icon.png' %}">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Onest:wght@400;500;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{% static 'css/app.css' %}">
+  <script src="https://unpkg.com/htmx.org@2.0.4"></script>
+</head>
+<body class="{% if reduce_motion %}reduce-motion{% endif %}">
+  <a class="skip" href="#main">Перейти до змісту</a>
+  {% block topbar %}{% include "partials/_topbar.html" %}{% endblock %}
+  <main id="main" class="page">
+    {% if messages %}
+      <div class="notices">
+        {% for message in messages %}<p class="notice" role="status">{{ message }}</p>{% endfor %}
+      </div>
+    {% endif %}
+    {% block content %}{% endblock %}
+  </main>
+  <script>
+    // Висувне меню: <dialog> сам обробляє Esc і фокус.
+    (function () {
+      var menu = document.getElementById("menu");
+      if (!menu) return;
+      document.querySelectorAll("[data-open-menu]").forEach(function (button) {
+        button.addEventListener("click", function () { menu.showModal(); });
+      });
+      menu.addEventListener("click", function (event) {
+        if (event.target === menu || event.target.closest("[data-close-menu]")) menu.close();
+      });
+    })();
+
+    // Позначає крок заняття пройденим (смужка кроків угорі).
+    window.markStepDone = function (index) {
+      var steps = document.querySelectorAll(".steps li");
+      if (!steps.length || isNaN(index) || !steps[index]) return;
+      steps[index].classList.add("is-done");
+      steps[index].classList.remove("is-current");
+    };
+    // Викликається після відповіді на вправу з варіантами.
+    window.afterAnswer = function (form, event) {
+      if (!event.detail || !event.detail.successful) return;
+      form.querySelectorAll("button").forEach(function (b) { b.disabled = true; });
+      var index = parseInt(event.detail.xhr.getResponseHeader("X-Step-Index"), 10);
+      window.markStepDone(index);
+    };
+  </script>
+</body>
+</html>

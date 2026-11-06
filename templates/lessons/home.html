@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+{% block content %}
+<section class="hello">
+  <p class="avatar-big" aria-hidden="true">{{ child.avatar_emoji }}</p>
+  <h1>Привіт, {{ child.nickname }}!</h1>
+  {% if resume_id %}
+    <p class="lead">Є заняття, яке ще не завершено. Можна продовжити з того місця, де зупинилися.</p>
+  {% else %}
+    <p class="lead">Заняття це {{ session_size }} коротких вправ. Зупинитися можна будь-коли.</p>
+  {% endif %}
+
+  <div class="actions">
+    {% if resume_id %}
+      <a class="btn btn-big" href="{% url 'lessons:session_resume' %}">Продовжити заняття</a>
+      <form method="post" action="{% url 'lessons:session_start' %}">
+        {% csrf_token %}
+        <button class="btn btn-quiet btn-big" type="submit">Почати нове</button>
+      </form>
+    {% else %}
+      <form method="post" action="{% url 'lessons:session_start' %}">
+        {% csrf_token %}
+        <button class="btn btn-big" type="submit">Почати заняття</button>
+      </form>
+    {% endif %}
+  </div>
+</section>
+
+{% if emotions %}
+<section class="feelings" aria-labelledby="feelings-title">
+  <h2 id="feelings-title">Емоції, які ми вивчаємо</h2>
+  {% include "lessons/partials/_feelings.html" %}
+</section>
+{% endif %}
+
+<p class="aside"><a href="{% url 'lessons:level_list' %}">Усі вправи</a></p>
+{% endblock %}

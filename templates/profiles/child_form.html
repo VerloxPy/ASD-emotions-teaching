@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+{% block title %}Профіль дитини{% endblock %}
+{% block content %}
+<section class="sheet narrow">
+  <h1>{% if form.instance.pk %}Профіль дитини{% else %}Хто навчатиметься?{% endif %}</h1>
+  <form class="form" method="post">
+    {% csrf_token %}
+    {% if form.non_field_errors %}<div class="errors" role="alert">{{ form.non_field_errors }}</div>{% endif %}
+
+    {% include "partials/_field.html" with field=form.nickname %}
+
+    <fieldset class="group">
+      <legend>Обери аватар</legend>
+      <div class="avatars">
+        {% for option in form.avatar_options %}
+          <label class="avatar-tile">
+            <input type="radio" name="avatar" value="{{ option.value }}" {% if form.avatar.value == option.value %}checked{% endif %}>
+            <span><b aria-hidden="true">{{ option.emoji }}</b><small>{{ option.label }}</small></span>
+          </label>
+        {% endfor %}
+      </div>
+      {% if form.avatar.errors %}<div class="errors" role="alert">{{ form.avatar.errors }}</div>{% endif %}
+    </fieldset>
+
+    {% include "partials/_field.html" with field=form.birth_year %}
+    {% include "partials/_field.html" with field=form.can_read %}
+
+    <button class="btn btn-big" type="submit">Зберегти</button>
+  </form>
+</section>
+{% endblock %}

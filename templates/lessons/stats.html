@@ -1,0 +1,60 @@
+{% extends "base.html" %}
+{% block title %}Успіхи{% endblock %}
+{% block content %}
+<h1>Успіхи: {{ child.nickname }}</h1>
+
+{% if total_attempts %}
+  <dl class="facts">
+    <div><dt>Вправ спробувано</dt><dd>{{ tried }} <small>з {{ total_exercises }}</small></dd></div>
+    <div><dt>Усього відповідей</dt><dd>{{ total_attempts }}</dd></div>
+    <div><dt>Вдалих відповідей</dt><dd>{{ percent_ok }}<small>%</small></dd></div>
+  </dl>
+
+  <section aria-labelledby="week-title">
+    <h2 id="week-title">Останні 7 днів</h2>
+    <ol class="week">
+      {% for day in week %}
+        <li class="{% if day.today %}is-today{% endif %}">
+          <span class="week-count">{{ day.count }}</span>
+          <span class="week-track"><span class="week-bar" style="height: {{ day.height }}%"></span></span>
+          <span class="week-day">{{ day.label }}</span>
+        </li>
+      {% endfor %}
+    </ol>
+    <p class="help">Кількість відповідей за день.</p>
+  </section>
+
+  {% if emotions %}
+    <section class="feelings" aria-labelledby="feelings-title">
+      <h2 id="feelings-title">Емоції</h2>
+      {% include "lessons/partials/_feelings.html" with show_counts=True %}
+    </section>
+  {% endif %}
+
+  <section class="level" aria-labelledby="weak-title">
+    <h2 id="weak-title">Що варто повторити</h2>
+    {% if weak %}
+      <ul class="rows">
+        {% for exercise in weak %}
+          <li>
+            <div class="row-main">
+              <a class="row-title" href="{% url 'lessons:exercise_detail' exercise.id %}">{{ exercise.prompt }}</a>
+            </div>
+            <p class="row-sub">{{ exercise.level.title }}{% if exercise.emotion %} · {{ exercise.emotion.name }}{% endif %}</p>
+          </li>
+        {% endfor %}
+      </ul>
+    {% else %}
+      <p class="lead">Поки що все гаразд. Тут з'являться вправи, до яких варто повернутися.</p>
+    {% endif %}
+  </section>
+{% else %}
+  <section class="sheet center">
+    <p class="lead">Успіхи з'являться після першого заняття.</p>
+    <form method="post" action="{% url 'lessons:session_start' %}">
+      {% csrf_token %}
+      <button class="btn btn-big" type="submit">Почати заняття</button>
+    </form>
+  </section>
+{% endif %}
+{% endblock %}

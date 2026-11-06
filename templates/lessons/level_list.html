@@ -1,0 +1,56 @@
+{% extends "base.html" %}
+{% block title %}Усі вправи{% endblock %}
+{% block content %}
+<h1>Усі вправи</h1>
+{% for level in levels %}
+  <section class="level">
+    <h2>{{ level.title }}</h2>
+    <ul class="rows">
+      {% for exercise in level.exercises.all %}
+        <li>
+          <div class="row-main">
+            <a class="row-title" href="{% url 'lessons:exercise_detail' exercise.id %}">{{ exercise.prompt }}</a>
+            {% if exercise.attempts_count %}<span class="tag tag-done">пройдено</span>{% else %}<span class="tag">нова</span>{% endif %}
+            <button class="btn btn-quiet btn-small" type="button" data-toggle-info
+                    aria-expanded="false" aria-controls="info-{{ exercise.id }}">
+              <span>Докладніше</span>
+            </button>
+          </div>
+          <p class="row-sub">{{ exercise.get_type_display }}{% if exercise.emotion %} · {{ exercise.emotion.name }}{% endif %}</p>
+
+          <div class="row-info" id="info-{{ exercise.id }}" hidden>
+            {% if exercise.image %}
+              <img src="{{ exercise.image.url }}" alt="Зображення з вправи">
+            {% else %}
+              <div class="no-image">Без зображення</div>
+            {% endif %}
+            <dl class="details">
+              <div><dt>Тип</dt><dd>{{ exercise.get_type_display }}</dd></div>
+              <div><dt>Емоція</dt><dd>{{ exercise.emotion.name|default:"не вказано" }}</dd></div>
+              <div><dt>Спроб</dt><dd>{{ exercise.attempts_count }}{% if exercise.attempts_count %}, вдалих: {{ exercise.correct_count }}{% endif %}</dd></div>
+              {% if exercise.last_at %}<div><dt>Остання спроба</dt><dd>{{ exercise.last_at|date:"j E, H:i" }}</dd></div>{% endif %}
+            </dl>
+            <a class="btn btn-small" href="{% url 'lessons:exercise_detail' exercise.id %}">Відкрити вправу</a>
+          </div>
+        </li>
+      {% empty %}
+        <li class="rows-empty">Вправ поки немає</li>
+      {% endfor %}
+    </ul>
+  </section>
+{% empty %}
+  <p>Рівнів поки немає.</p>
+{% endfor %}
+
+<script>
+  document.addEventListener("click", function (event) {
+    var button = event.target.closest("[data-toggle-info]");
+    if (!button) return;
+    var panel = document.getElementById(button.getAttribute("aria-controls"));
+    var wasOpen = button.getAttribute("aria-expanded") === "true";
+    button.setAttribute("aria-expanded", wasOpen ? "false" : "true");
+    panel.hidden = wasOpen;
+    button.querySelector("span").textContent = wasOpen ? "Докладніше" : "Сховати";
+  });
+</script>
+{% endblock %}

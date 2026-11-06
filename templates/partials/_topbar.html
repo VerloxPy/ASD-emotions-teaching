@@ -1,0 +1,49 @@
+<header class="topbar">
+  <div class="topbar-left">
+    {% if user.is_authenticated %}
+      <button class="menu-button" type="button" data-open-menu aria-haspopup="dialog" aria-controls="menu">
+        <svg width="22" height="22" viewBox="0 0 22 22" aria-hidden="true">
+          <path d="M3 6h16M3 11h16M3 16h16" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" fill="none"/>
+        </svg>
+        <span>Меню</span>
+      </button>
+    {% endif %}
+    <a class="brand" href="{% url 'lessons:home' %}">
+      <svg width="32" height="32" viewBox="0 0 32 32" aria-hidden="true">
+        <circle cx="11" cy="12" r="8" fill="#F2C14E"/>
+        <circle cx="21" cy="12" r="8" fill="#6FA8DC" fill-opacity=".9"/>
+        <circle cx="16" cy="21" r="8" fill="#A596CF" fill-opacity=".9"/>
+      </svg>
+      <span>Вчимося розуміти емоції</span>
+    </a>
+  </div>
+  {% if user.is_authenticated and active_child %}
+    <a class="chip" href="{% url 'accounts:child_select' %}">
+      <span aria-hidden="true">{{ active_child.avatar_emoji }}</span>{{ active_child.nickname }}
+    </a>
+  {% endif %}
+</header>
+
+{% if user.is_authenticated %}
+<dialog id="menu" class="drawer" aria-label="Меню">
+  <div class="drawer-head">
+    <p class="drawer-child">
+      {% if active_child %}<span aria-hidden="true">{{ active_child.avatar_emoji }}</span> {{ active_child.nickname }}{% else %}Меню{% endif %}
+    </p>
+    <button class="close" type="button" data-close-menu aria-label="Закрити меню">&times;</button>
+  </div>
+  <nav class="drawer-nav" aria-label="Основне меню">
+    {% with current=request.resolver_match.view_name %}
+      <a href="{% url 'lessons:home' %}" {% if current == 'lessons:home' %}aria-current="page"{% endif %}>Головна</a>
+      <a href="{% url 'lessons:stats' %}" {% if current == 'lessons:stats' %}aria-current="page"{% endif %}>Статистика успіхів</a>
+      <a href="{% url 'lessons:level_list' %}" {% if current == 'lessons:level_list' %}aria-current="page"{% endif %}>Усі вправи</a>
+      <a href="{% url 'accounts:settings' %}" {% if current == 'accounts:settings' %}aria-current="page"{% endif %}>Налаштування</a>
+      <a href="{% url 'accounts:child_select' %}" {% if current == 'accounts:child_select' %}aria-current="page"{% endif %}>Змінити дитину</a>
+    {% endwith %}
+  </nav>
+  <form class="drawer-foot" method="post" action="{% url 'account_logout' %}">
+    {% csrf_token %}
+    <button class="btn btn-quiet btn-wide" type="submit">Вийти</button>
+  </form>
+</dialog>
+{% endif %}

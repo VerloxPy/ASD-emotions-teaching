@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+{% load socialaccount %}
+{% block title %}Створити акаунт{% endblock %}
+{% block content %}
+<section class="sheet narrow">
+  <h1>Створити акаунт</h1>
+  <p class="lead">Акаунт створює батько чи опікун. Профіль дитини додається наступним кроком.</p>
+
+  {% if google_enabled %}
+    <form method="post" action="{% provider_login_url 'google' %}">
+      {% csrf_token %}
+      <button class="btn btn-big btn-wide" type="submit">Зареєструватися через Google</button>
+    </form>
+    <p class="help">Без пароля: акаунт створиться з вашим акаунтом Google.</p>
+    <p class="or">або за поштою й паролем</p>
+  {% elif debug %}
+    <p class="notice">Режим розробки: реєстрація через Google з'явиться, коли в файлі .env буде вказано GOOGLE_CLIENT_ID і GOOGLE_CLIENT_SECRET.</p>
+  {% endif %}
+
+  {% if form.non_field_errors %}<div class="errors" role="alert">{{ form.non_field_errors }}</div>{% endif %}
+
+  <form class="form" method="post" action="{% url 'account_signup' %}">
+    {% csrf_token %}
+    {% for field in form.visible_fields %}{% include "partials/_field.html" %}{% endfor %}
+    {% if redirect_field_value %}
+      <input type="hidden" name="{{ redirect_field_name }}" value="{{ redirect_field_value }}">
+    {% endif %}
+    <button class="btn {% if google_enabled %}btn-quiet {% endif %}btn-big" type="submit">Створити акаунт</button>
+  </form>
+
+  <p class="aside">Вже є акаунт? <a href="{% url 'account_login' %}">Увійти</a></p>
+</section>
+{% endblock %}

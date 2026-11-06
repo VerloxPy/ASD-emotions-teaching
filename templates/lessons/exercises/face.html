@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+{% block title %}Вправа{% endblock %}
+{% block topbar %}{% include "partials/_lessonbar.html" %}{% endblock %}
+{% block content %}
+<section class="sheet">
+  <h1 class="question">{{ exercise.prompt }}</h1>
+
+  {% if exercise.image %}
+    <img class="exercise-image" src="{{ exercise.image.url }}" alt="Зображення до вправи">
+  {% endif %}
+
+  <form class="options"
+        hx-post="{% url 'lessons:exercise_answer' exercise.id %}"
+        hx-target="#feedback" hx-swap="innerHTML"
+        hx-on::after-request="afterAnswer(this, event)">
+    {% csrf_token %}
+    {% for option in exercise.data.options %}
+      <button type="submit" class="option" name="choice" value="{{ option }}">{{ option }}</button>
+    {% endfor %}
+  </form>
+
+  <div id="feedback" class="feedback" aria-live="polite"></div>
+</section>
+
+<script>
+  document.querySelector(".options").addEventListener("click", function (e) {
+    var button = e.target.closest("button[name=choice]");
+    if (button) button.classList.add("is-chosen");
+  });
+</script>
+{% endblock %}

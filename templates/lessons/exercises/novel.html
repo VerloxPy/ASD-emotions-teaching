@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+{% block title %}Історія{% endblock %}
+{% block topbar %}{% include "partials/_lessonbar.html" %}{% endblock %}
+{% block content %}
+<section class="sheet">
+  <h1 class="question">{{ exercise.prompt }}</h1>
+
+  <iframe class="novel-frame" id="novel" src="{{ novel_url }}" title="{{ exercise.prompt }}"></iframe>
+
+  <div id="feedback" class="feedback" aria-live="polite"></div>
+</section>
+
+<script>
+window.addEventListener("message", async function (event) {
+  if (event.origin !== window.location.origin) return;
+  if (!event.data || event.data.type !== "novel_result") return;
+  var response = await fetch("{% url 'lessons:novel_result' exercise.id %}", {
+    method: "POST",
+    headers: {"Content-Type": "application/json", "X-CSRFToken": "{{ csrf_token }}"},
+    body: JSON.stringify(event.data.payload),
+  });
+  if (!response.ok) return;
+  document.getElementById("feedback").innerHTML = await response.text();
+  var index = parseInt(response.headers.get("X-Step-Index"), 10);
+  window.markStepDone(index);
+});
+</script>
+{% endblock %}

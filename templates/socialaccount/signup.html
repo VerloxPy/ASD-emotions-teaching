@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+{% block title %}Завершіть реєстрацію{% endblock %}
+{% block content %}
+<section class="sheet narrow">
+  <h1>Завершіть реєстрацію</h1>
+  <p class="lead">Залишився один крок, щоб створити акаунт.</p>
+
+  {% if form.non_field_errors %}<div class="errors" role="alert">{{ form.non_field_errors }}</div>{% endif %}
+
+  <form class="form" method="post" action="{% url 'socialaccount_signup' %}">
+    {% csrf_token %}
+    {% for field in form.visible_fields %}{% include "partials/_field.html" %}{% endfor %}
+    {% if redirect_field_value %}
+      <input type="hidden" name="{{ redirect_field_name }}" value="{{ redirect_field_value }}">
+    {% endif %}
+    <button class="btn btn-big" type="submit">Продовжити</button>
+  </form>
+</section>
+{% endblock %}

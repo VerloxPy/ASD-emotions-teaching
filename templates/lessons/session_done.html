@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+{% block title %}Заняття завершено{% endblock %}
+{% block content %}
+<section class="sheet center">
+  <p class="avatar-big" aria-hidden="true">{{ child.avatar_emoji }}</p>
+  <h1>Заняття завершено!</h1>
+  <p class="lead">Вправ пройдено: {{ total }}.</p>
+  {% if first_try %}
+    <p>З першої спроби вдалося: {{ first_try }} з {{ total }}.</p>
+  {% endif %}
+  <div class="actions">
+    <form method="post" action="{% url 'lessons:session_start' %}">
+      {% csrf_token %}
+      <button class="btn btn-big" type="submit">Ще одне заняття</button>
+    </form>
+    <a class="btn btn-quiet btn-big" href="{% url 'lessons:home' %}">На головну</a>
+  </div>
+</section>
+{% endblock %}

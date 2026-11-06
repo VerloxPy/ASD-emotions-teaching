@@ -1,0 +1,12 @@
+{% if fits %}
+  <div class="fb fb-ok">
+    <p class="fb-title">Чудово!</p>
+    <p>Ця реакція добре підходить до ситуації.</p>
+    {% include "lessons/partials/_next.html" %}
+  </div>
+{% else %}
+  <div class="fb fb-try">
+    <p class="fb-title">Ця реакція тут не зовсім підходить.</p>
+    <p>Давай подумаємо ще раз.</p>
+  </div>
+{% endif %}

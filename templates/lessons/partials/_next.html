@@ -1,0 +1,9 @@
+<p class="next">
+  {% if next_exercise %}
+    <a class="btn" href="{% url 'lessons:exercise_detail' next_exercise.id %}">Далі</a>
+  {% elif in_session %}
+    <a class="btn" href="{% url 'lessons:session_done' %}">Завершити заняття</a>
+  {% else %}
+    <a class="btn" href="{% url 'lessons:level_list' %}">До всіх вправ</a>
+  {% endif %}
+</p>

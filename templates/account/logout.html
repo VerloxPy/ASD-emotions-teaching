@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+{% block title %}Вихід{% endblock %}
+{% block content %}
+<section class="sheet narrow">
+  <h1>Вийти з акаунта?</h1>
+  <form method="post" action="{% url 'account_logout' %}" class="actions-row">
+    {% csrf_token %}
+    {% if redirect_field_value %}
+      <input type="hidden" name="{{ redirect_field_name }}" value="{{ redirect_field_value }}">
+    {% endif %}
+    <button class="btn" type="submit">Вийти</button>
+    <a class="btn btn-quiet" href="{% url 'lessons:home' %}">Залишитися</a>
+  </form>
+</section>
+{% endblock %}

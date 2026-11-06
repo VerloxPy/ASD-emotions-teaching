@@ -1,0 +1,13 @@
+{% if progress %}
+  <div class="lesson-bar">
+    <a class="close" href="{% url 'lessons:home' %}" aria-label="Вийти із заняття">&times;</a>
+    <ol class="steps" aria-hidden="true">
+      {% for step in progress.steps %}
+        <li class="{% if step.done %}is-done{% elif step.current %}is-current{% endif %}"></li>
+      {% endfor %}
+    </ol>
+    <p class="steps-label">Крок {{ progress.current }} з {{ progress.total }}</p>
+  </div>
+{% else %}
+  {% include "partials/_topbar.html" %}
+{% endif %}

@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+{% load socialaccount %}
+{% block title %}Вхід{% endblock %}
+{% block content %}
+<section class="sheet narrow">
+  <h1>Вхід</h1>
+
+  {% if google_enabled %}
+    <form method="post" action="{% provider_login_url 'google' %}">
+      {% csrf_token %}
+      <button class="btn btn-big btn-wide" type="submit">Продовжити з Google</button>
+    </form>
+    <p class="help">Пароль не потрібен: достатньо акаунта Google.</p>
+    <p class="or">або за поштою й паролем</p>
+  {% elif debug %}
+    <p class="notice">Режим розробки: кнопка Google з'явиться, коли в файлі .env буде вказано GOOGLE_CLIENT_ID і GOOGLE_CLIENT_SECRET.</p>
+  {% endif %}
+
+  {% if form.non_field_errors %}<div class="errors" role="alert">{{ form.non_field_errors }}</div>{% endif %}
+
+  <form class="form" method="post" action="{% url 'account_login' %}">
+    {% csrf_token %}
+    {% for field in form.visible_fields %}{% include "partials/_field.html" %}{% endfor %}
+    {% if redirect_field_value %}
+      <input type="hidden" name="{{ redirect_field_name }}" value="{{ redirect_field_value }}">
+    {% endif %}
+    <button class="btn {% if google_enabled %}btn-quiet {% endif %}btn-big" type="submit">Увійти</button>
+  </form>
+
+  <p class="aside"><a href="{% url 'account_reset_password' %}">Забули пароль?</a></p>
+  <p class="aside">Вперше тут? <a href="{% url 'account_signup' %}">Створити акаунт</a></p>
+</section>
+{% endblock %}
