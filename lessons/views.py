@@ -9,7 +9,7 @@ from django.http import HttpResponseBadRequest
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
 from django.views.decorators.http import require_POST
-
+from django.http import JsonResponse
 from accounts.utils import child_required
 from progress.models import Attempt
 
@@ -24,9 +24,15 @@ SESSION_SIZE = 5  # скільки вправ у одному занятті
 # Які шаблони показують які типи вправ. Новий тип = новий рядок + новий шаблон.
 EXERCISE_TEMPLATES = {
     Exercise.Type.FACE_TO_EMOTION: "lessons/exercises/face.html",
+    Exercise.Type.SITUATION: "lessons/exercises/situation.html",
+    Exercise.Type.PHRASE: "lessons/exercises/phrase.html",
+    Exercise.Type.MATCH: "lessons/exercises/match.html",
+    Exercise.Type.SCALE: "lessons/exercises/scale.html",
     Exercise.Type.NOVEL: "lessons/exercises/novel.html",
     Exercise.Type.READ_ALOUD: "lessons/exercises/read_aloud.html",
+    Exercise.Type.SHOW_EMOTION: "lessons/exercises/show.html",
 }
+
 SUPPORTED_TYPES = list(EXERCISE_TEMPLATES)
 
 MASTERY_LABELS = ["ще не пробували", "починаємо", "виходить", "добре знаємо"]
@@ -36,7 +42,6 @@ WEEKDAYS = ["Пн", "Вт", "Ср", "Чт", "Пт", "Сб", "Нд"]
 # ---------- допоміжне ----------
 
 def _load_history(child):
-    """Вправи й спроби дитини у вигляді простих даних для selection.py."""
     exercises = Exercise.objects.filter(type__in=SUPPORTED_TYPES).select_related("level")
     # Вправу на читання без жодного речення в заняття не беремо.
     with_lines = set(ReadingLine.objects.values_list("exercise_id", flat=True))
@@ -51,7 +56,6 @@ def _load_history(child):
 
 
 def _emotion_rows(infos, attempts):
-    """Емоції з рівнем освоєння (для головної й статистики)."""
     mastery = emotion_mastery(infos, attempts)
     emotion_of = {e.id: e.emotion_id for e in infos}
     counts = {}
@@ -74,7 +78,6 @@ def _emotion_rows(infos, attempts):
 
 
 def _next_context(plan, exercise):
-    """Яка вправа наступна: у занятті за планом, поза заняттям у межах рівня."""
     in_session = bool(plan) and exercise.id in plan["ids"]
     if in_session:
         next_id = lesson_plan.next_id(plan, exercise.id)
@@ -87,7 +90,6 @@ def _next_context(plan, exercise):
 
 
 def _with_step_header(response, plan, exercise_id):
-    """Повідомляє сторінці, який крок заняття щойно завершено (для смужки)."""
     index = lesson_plan.step_index(plan, exercise_id)
     if index is not None:
         response["X-Step-Index"] = str(index)
@@ -206,7 +208,7 @@ def stats(request):
     correct = sum(1 for a in attempts if a.is_correct)
     tried = len({a.exercise_id for a in attempts if a.exercise_id in known})
 
-    # активність за останні 7 днів
+
     today = timezone.localdate()
     days = [today - timedelta(days=offset) for offset in range(6, -1, -1)]
     counts = dict.fromkeys(days, 0)
@@ -267,7 +269,9 @@ def exercise_detail(request, id):
 @child_required
 @require_POST
 def exercise_answer(request, id):
-    exercise = get_object_or_404(Exercise, id=id, type=Exercise.Type.FACE_TO_EMOTION)
+    exercise = get_object_or_404(
+        Exercise, id=id, type__in=[Exercise.Type.FACE_TO_EMOTION, Exercise.Type.SITUATION]
+    )
     chosen = request.POST.get("choice")
 
     if chosen not in exercise.data.get("options", []):
@@ -360,3 +364,122 @@ def reading_result(request, id):
         **_next_context(plan, exercise),
     })
     return _with_step_header(response, plan, exercise.id)
+
+
+def _choice_index(request, size):
+    try:
+        index = int(request.POST.get("choice", ""))
+    except ValueError:
+        return None
+    return index if 0 <= index < size else None
+
+
+@login_required
+@child_required
+@require_POST
+def phrase_answer(request, id):
+    """«Як би ти це сказав?»: дитина обирає фразу, у кожної фрази власний м'який коментар."""
+    exercise = get_object_or_404(Exercise, id=id, type=Exercise.Type.PHRASE)
+    options = exercise.data.get("options", [])
+    index = _choice_index(request, len(options))
+    if index is None:
+        return HttpResponseBadRequest("Невідомий варіант відповіді")
+    option = options[index]
+    fits = option.get("fits") is True
+
+    Attempt.objects.create(
+        child=request.child, exercise=exercise, answer={"chosen": index}, is_correct=fits,
+    )
+    plan = lesson_plan.get(request, request.child)
+    if fits:  # крок пройдено, коли знайдено доречну фразу
+        plan = lesson_plan.mark_done(request, request.child, exercise.id)
+
+    response = render(request, "lessons/partials/phrase_feedback.html", {
+        "fits": fits,
+        "feedback": option.get("feedback", ""),
+        **_next_context(plan, exercise),
+    })
+    response["X-Fits"] = "1" if fits else "0"
+    response["X-Choice"] = str(index)
+    return _with_step_header(response, plan, exercise.id) if fits else response
+
+
+@login_required
+@child_required
+@require_POST
+def scale_answer(request, id):
+    """«Шкала сили емоції»: дитина обирає значення від 1 до кількості підписів."""
+    exercise = get_object_or_404(Exercise, id=id, type=Exercise.Type.SCALE)
+    labels = exercise.data.get("labels", [])
+    index = _choice_index(request, len(labels))
+    if index is None:
+        return HttpResponseBadRequest("Невідомий варіант відповіді")
+    value = index + 1
+    correct = exercise.data.get("correct", [])
+    is_correct = value in correct
+
+    Attempt.objects.create(
+        child=request.child, exercise=exercise, answer={"chosen": value}, is_correct=is_correct,
+    )
+    plan = lesson_plan.mark_done(request, request.child, exercise.id)
+
+    response = render(request, "lessons/partials/scale_feedback.html", {
+        "is_correct": is_correct,
+        "typical": " або ".join(f"«{labels[v - 1]}»" for v in correct if 1 <= v <= len(labels)),
+        "explanation": exercise.data.get("explanation", ""),
+        **_next_context(plan, exercise),
+    })
+    return _with_step_header(response, plan, exercise.id)
+
+
+@login_required
+@child_required
+@require_POST
+def match_result(request, id):
+    """«Знайди пару»: пари перевіряються в браузері, на сервер надходять лише підсумки."""
+    exercise = get_object_or_404(Exercise, id=id, type=Exercise.Type.MATCH)
+    try:
+        payload = json.loads(request.body)
+    except json.JSONDecodeError:
+        return HttpResponseBadRequest("Некоректні дані")
+    if not isinstance(payload, dict):
+        return HttpResponseBadRequest("Некоректні дані")
+
+    total = len(exercise.data.get("pairs", []))
+    pairs, mistakes = payload.get("pairs"), payload.get("mistakes")
+    for value in (pairs, mistakes):
+        if isinstance(value, bool) or not isinstance(value, int) or not 0 <= value <= 1000:
+            return HttpResponseBadRequest("Некоректні дані")
+    if pairs != total:
+        return HttpResponseBadRequest("Некоректні дані")
+
+    Attempt.objects.create(
+        child=request.child, exercise=exercise,
+        answer={"pairs": pairs, "mistakes": mistakes}, is_correct=mistakes == 0,
+    )
+    plan = lesson_plan.mark_done(request, request.child, exercise.id)
+
+    response = render(request, "lessons/partials/match_feedback.html", {
+        "mistakes": mistakes,
+        "explanation": exercise.data.get("explanation", ""),
+        **_next_context(plan, exercise),
+    })
+    return _with_step_header(response, plan, exercise.id)
+
+
+@require_POST
+def show_result(request, pk):
+    exercise = get_object_or_404(Exercise, pk=pk)
+    try:
+        data = json.loads(request.body)
+        is_correct = data.get('is_correct', False)
+
+        Attempt.objects.create(
+            exercise=exercise,
+            user=request.user,
+            is_correct=is_correct,
+            data=data
+        )
+        return JsonResponse({"status": "ok"})
+    except Exception as e:
+        return JsonResponse({"status": "error", "message": str(e)}, status=400)

@@ -303,3 +303,44 @@ body.reduce-motion *, body.reduce-motion *::before, body.reduce-motion *::after 
 .turn { margin: 0; padding: .6rem 1rem; font-weight: 700; color: var(--lagoon-deep); background: var(--lagoon-wash); border-radius: var(--radius); }
 .turn-actions { display: flex; flex-wrap: wrap; gap: .75rem; }
 .btn.is-recording { color: var(--indigo); border-color: var(--indigo); background: var(--indigo-wash); }
+
+/* ---------- нові типи вправ ---------- */
+.situation { margin: .25rem 0 1rem; font-size: 1.15rem; }
+.option.is-tried { background: var(--indigo-wash); border-color: transparent; }
+
+.scale-steps { list-style: none; margin: 1.25rem 0 0; padding: 0; display: grid; grid-auto-flow: column; grid-auto-columns: 1fr; gap: .5rem; align-items: end; }
+.scale-step {
+  display: flex; flex-direction: column; align-items: center; justify-content: flex-end; gap: .5rem;
+  width: 100%; height: 100%; padding: .6rem .25rem; font: inherit; color: var(--ink);
+  background: var(--paper); border: 2px solid var(--line); border-radius: var(--radius); cursor: pointer;
+  transition: border-color .15s, background-color .15s;
+}
+.scale-step:hover:not(:disabled) { border-color: var(--lagoon); background: var(--lagoon-wash); }
+.scale-step.is-chosen { border-color: var(--lagoon); background: var(--lagoon-wash); }
+.scale-step:disabled { cursor: default; }
+.scale-step:disabled:not(.is-chosen) { opacity: .6; }
+.scale-bar {
+  display: block; width: 100%; max-width: 2.5rem; height: calc(1rem + var(--level) * 1.1rem);
+  background: var(--emotion, var(--lagoon)); border-radius: 8px 8px 0 0; opacity: calc(.3 + var(--level) * .14);
+}
+.scale-label { font-size: .85rem; line-height: 1.25; text-align: center; }
+
+.match-board { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-top: 1rem; }
+.match-col { list-style: none; margin: 0; padding: 0; display: grid; gap: .6rem; align-content: start; }
+.match-card {
+  width: 100%; min-height: 3.5rem; padding: .7rem .9rem; text-align: left; font: inherit; color: var(--ink);
+  background: var(--paper); border: 2px solid var(--line); border-radius: var(--radius); cursor: pointer;
+  transition: border-color .15s, background-color .15s;
+}
+.match-card.is-left { font-weight: 700; }
+.match-card:hover:not(:disabled) { border-color: var(--lagoon); background: var(--lagoon-wash); }
+.match-card.is-selected { border-color: var(--lagoon); background: var(--lagoon-wash); }
+.match-card.is-matched { border-color: var(--pair, var(--moss)); box-shadow: inset .5rem 0 0 var(--pair, var(--moss)); padding-left: 1.3rem; cursor: default; }
+.match-note { min-height: 1.6rem; margin: .75rem 0 0; color: var(--indigo); font-weight: 500; }
+
+@media (max-width: 36rem) {
+  .scale-steps { grid-auto-flow: row; grid-auto-columns: auto; align-items: stretch; }
+  .scale-step { flex-direction: row; justify-content: flex-start; gap: .75rem; padding: .6rem .9rem; }
+  .scale-bar { width: calc(var(--level) * 2.2rem); height: 1rem; max-width: 55%; border-radius: 8px; flex: none; }
+  .scale-label { text-align: left; font-size: .95rem; }
+}

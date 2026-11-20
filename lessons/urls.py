@@ -13,6 +13,10 @@ urlpatterns = [
     path("session/done/", views.session_done, name="session_done"),
     path("exercise/<int:id>/", views.exercise_detail, name="exercise_detail"),
     path("exercise/<int:id>/answer/", views.exercise_answer, name="exercise_answer"),
+    path("exercise/<int:id>/phrase-answer/", views.phrase_answer, name="phrase_answer"),
+    path("exercise/<int:id>/scale-answer/", views.scale_answer, name="scale_answer"),
+    path("exercise/<int:id>/match-result/", views.match_result, name="match_result"),
     path("exercise/<int:id>/novel-result/", views.novel_result, name="novel_result"),
     path("exercise/<int:id>/reading-result/", views.reading_result, name="reading_result"),
+    path('exercise/<int:pk>/show-result/', views.show_result, name='show_result'),
 ]

@@ -1,5 +1,8 @@
+from django.core.exceptions import ValidationError
 from django.core.validators import FileExtensionValidator, RegexValidator
 from django.db import models
+
+from .validators import validate_exercise_data
 
 EMOTION_PALETTE = ["#F2C14E", "#6FA8DC", "#E58F76", "#A596CF", "#68BBA9", "#E5A0BC"]
 
@@ -41,6 +44,7 @@ class Exercise(models.Model):
         SCALE = "scale", "Шкала сили емоції"
         NOVEL = "novel", "Новела"
         READ_ALOUD = "read_aloud", "Виразне читання"
+        SHOW_EMOTION = "show", "Покажи емоцію"
 
     level = models.ForeignKey(Level, on_delete=models.CASCADE, related_name="exercises")
     emotion = models.ForeignKey(Emotion, on_delete=models.SET_NULL, null=True, blank=True)
@@ -56,6 +60,12 @@ class Exercise(models.Model):
 
     def __str__(self):
         return f"{self.level} / {self.order}: {self.prompt[:40]}"
+
+    def clean(self):
+        super().clean()
+        errors = validate_exercise_data(self.type, self.data)
+        if errors:
+            raise ValidationError({"data": errors})
 
 
 class ReadingLine(models.Model):

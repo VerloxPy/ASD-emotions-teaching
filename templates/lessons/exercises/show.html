@@ -1,0 +1,143 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="exercise-container text-center p-4">
+    <h2>Покажи емоцію: <span id="target-emotion" class="text-primary">{{ exercise.prompt }}</span></h2>
+    
+    <!-- Зона відео та канвасу -->
+    <div class="video-wrap position-relative d-inline-block mt-3" style="width: 640px; height: 480px;">
+        <video id="webcam" autoplay muted playsinline width="640" height="480" style="border-radius: 12px;"></video>
+        <canvas id="overlay" width="640" height="480" class="position-absolute top-0 start-0"></canvas>
+    </div>
+
+    <!-- Індикатор прогресу -->
+    <div class="mt-3">
+        <button id="start-btn" class="btn btn-success btn-lg">Увімкнути камеру</button>
+        <div id="status-text" class="h4 mt-2 text-muted">Натисни кнопку, щоб почати</div>
+        
+        <div class="progress mt-3" style="height: 25px; max-width: 400px; margin: 0 auto;">
+            <div id="progress-bar" class="progress-bar bg-success" role="progressbar" style="width: 0%;">0%</div>
+        </div>
+    </div>
+</div>
+
+<!-- Підключаємо face-api.js з CDN -->
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/face-api.js/0.22.2/face-api.min.js"></script>
+
+<script>
+document.addEventListener("DOMContentLoaded", async () => {
+    const video = document.getElementById('webcam');
+    const canvas = document.getElementById('overlay');
+    const startBtn = document.getElementById('start-btn');
+    const statusText = document.getElementById('status-text');
+    const progressBar = document.getElementById('progress-bar');
+
+    // Бажана емоція з бекенду (наприклад, 'happy', 'sad', 'angry' тощо)
+    const targetEmotion = "{{ exercise.data.target_emotion|default:'happy' }}";
+    
+    let holdingTime = 0;
+    const requiredTime = 1800; // 1.8 секунди утримання емоції
+    let isFinished = false;
+
+    startBtn.addEventListener('click', async () => {
+        startBtn.style.display = 'none';
+        statusText.innerText = "Завантаження моделей ШІ...";
+
+        try {
+            // Завантажуємо моделі з локальної папки static/models або CDN
+            const MODEL_URL = '{% static "models" %}';
+            await faceapi.nets.tinyFaceDetector.loadFromUri(MODEL_URL);
+            await faceapi.nets.faceLandmark68Net.loadFromUri(MODEL_URL);
+            await faceapi.nets.faceExpressionNet.loadFromUri(MODEL_URL);
+
+            statusText.innerText = "Вмикаємо камеру...";
+            const stream = await navigator.mediaDevices.getUserMedia({ video: {} });
+            video.srcObject = stream;
+
+            video.addEventListener('play', () => {
+                statusText.innerText = "Знайди емоцію і тримай її!";
+                detectLoop();
+            });
+
+        } catch (err) {
+            console.error(err);
+            statusText.innerText = "Помилка доступу до камери або моделей!";
+            startBtn.style.display = 'block';
+        }
+    });
+
+    async function detectLoop() {
+        if (isFinished) return;
+
+        const displaySize = { width: video.width, height: video.height };
+        faceapi.matchDimensions(canvas, displaySize);
+
+        setInterval(async () => {
+            if (isFinished) return;
+
+            const detections = await faceapi.detectSingleFace(
+                video, 
+                new faceapi.TinyFaceDetectorOptions()
+            ).withFaceLandmarks().withFaceExpressions();
+
+            const ctx = canvas.getContext('2d');
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            if (detections) {
+                // Малюємо сітку (landmarks) на обличчі
+                const resizedDetections = faceapi.resizeResults(detections, displaySize);
+                faceapi.draw.drawFaceLandmarks(canvas, resizedDetections);
+
+                const expressions = detections.expressions;
+                // Знаходимо найімовірнішу емоцію
+                const dominantEmotion = Object.keys(expressions).reduce((a, b) => 
+                    expressions[a] > expressions[b] ? a : b
+                );
+
+                // Перевіряємо, чи збігається з цільовою і ймовірність > 0.6
+                if (dominantEmotion === targetEmotion && expressions[targetEmotion] > 0.6) {
+                    holdingTime += 100;
+                    let progress = Math.min(100, (holdingTime / requiredTime) * 100);
+                    progressBar.style.width = progress + '%';
+                    progressBar.innerText = Math.round(progress) + '%';
+                    statusText.innerText = "Чудово! Тримай...";
+
+                    if (holdingTime >= requiredTime) {
+                        isFinished = true;
+                        statusText.innerText = "Вправу виконано успішно! 🎉";
+                        sendResult(true);
+                    }
+                } else {
+                    // Трохи зменшуємо прогрес, якщо дитина змінила міміку
+                    holdingTime = Math.max(0, holdingTime - 50);
+                    let progress = (holdingTime / requiredTime) * 100;
+                    progressBar.style.width = progress + '%';
+                    progressBar.innerText = Math.round(progress) + '%';
+                    statusText.innerText = `Спробуй показати: ${targetEmotion}`;
+                }
+            } else {
+                statusText.innerText = "Обличчя не знайдено в кадрі";
+            }
+        }, 100);
+    }
+
+    function sendResult(isCorrect) {
+        fetch("{% url 'lessons:show_result' exercise.id %}", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "X-CSRFToken": "{{ csrf_token }}"
+            },
+            body: JSON.stringify({ is_correct: isCorrect })
+        }).then(response => {
+            if (response.ok) {
+                setTimeout(() => {
+                    window.location.reload(); // або перехід на наступну вправу
+                }, 1500);
+            }
+        });
+    }
+});
+</script>
+{% endblock %}
