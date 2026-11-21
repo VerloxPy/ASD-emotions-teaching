@@ -1,0 +1,361 @@
+[
+{
+  "model": "lessons.emotion",
+  "pk": 1,
+  "fields": {
+    "slug": "radist",
+    "name": "Радість",
+    "color": "#ffcd00"
+  }
+},
+{
+  "model": "lessons.emotion",
+  "pk": 2,
+  "fields": {
+    "slug": "sum",
+    "name": "Сум",
+    "color": "#0091ff"
+  }
+},
+{
+  "model": "lessons.emotion",
+  "pk": 3,
+  "fields": {
+    "slug": "zlist",
+    "name": "злість",
+    "color": "#ed0008"
+  }
+},
+{
+  "model": "lessons.emotion",
+  "pk": 4,
+  "fields": {
+    "slug": "spokiy",
+    "name": "спокій",
+    "color": "#5ee4ff"
+  }
+},
+{
+  "model": "lessons.emotion",
+  "pk": 5,
+  "fields": {
+    "slug": "zdyvuvannya",
+    "name": "здивуання",
+    "color": "#d857ff"
+  }
+},
+{
+  "model": "lessons.emotion",
+  "pk": 6,
+  "fields": {
+    "slug": "strakh",
+    "name": "Страх",
+    "color": "#A596CF"
+  }
+},
+{
+  "model": "lessons.emotion",
+  "pk": 7,
+  "fields": {
+    "slug": "sorom",
+    "name": "Сором",
+    "color": "#E5A0BC"
+  }
+},
+{
+  "model": "lessons.emotion",
+  "pk": 8,
+  "fields": {
+    "slug": "gordist",
+    "name": "Гордість",
+    "color": "#F2A154"
+  }
+},
+{
+  "model": "lessons.level",
+  "pk": 1,
+  "fields": {
+    "title": "Основні емоції",
+    "order": 1
+  }
+},
+{
+  "model": "lessons.level",
+  "pk": 2,
+  "fields": {
+    "title": "основні емоції але складніші",
+    "order": 2
+  }
+},
+{
+  "model": "lessons.level",
+  "pk": 3,
+  "fields": {
+    "title": "Нові емоції: страх, сором, гордість",
+    "order": 3
+  }
+},
+{
+  "model": "lessons.exercise",
+  "pk": 1,
+  "fields": {
+    "level": 1,
+    "emotion": 1,
+    "type": "face",
+    "order": 10,
+    "prompt": "Яку емоцію ти бачиш на обличчі?",
+    "data": {
+      "options": [
+        "радість",
+        "сум",
+        "злість"
+      ],
+      "correct": "радість",
+      "explanation": "Куточки рота підняті вгору, очі прищурені."
+    },
+    "image": "exercises/close-up-handsome-young-man-laughing-wearing-casual-clothes-standing-blue-bac_xYb1akb.avif",
+    "audio": ""
+  }
+},
+{
+  "model": "lessons.exercise",
+  "pk": 5,
+  "fields": {
+    "level": 1,
+    "emotion": 1,
+    "type": "read_aloud",
+    "order": 20,
+    "prompt": "Прочитай разом з диктором",
+    "data": {},
+    "image": "exercises/shrek_shrek_forever_after_movie-wallpaper-2560x1600.jpg",
+    "audio": "exercises/audio/Запис_2.m4a"
+  }
+},
+{
+  "model": "lessons.exercise",
+  "pk": 6,
+  "fields": {
+    "level": 1,
+    "emotion": 3,
+    "type": "novel",
+    "order": 30,
+    "prompt": "Зіпсований малюнок",
+    "data": {
+      "build": "novels/zlist/index.html"
+    },
+    "image": "",
+    "audio": ""
+  }
+},
+{
+  "model": "lessons.exercise",
+  "pk": 7,
+  "fields": {
+    "level": 1,
+    "emotion": 2,
+    "type": "novel",
+    "order": 40,
+    "prompt": "Історія про зламану іграшку",
+    "data": {
+      "build": "novels/sum/index.html"
+    },
+    "image": "",
+    "audio": ""
+  }
+},
+{
+  "model": "lessons.exercise",
+  "pk": 8,
+  "fields": {
+    "level": 2,
+    "emotion": 5,
+    "type": "novel",
+    "order": 2,
+    "prompt": "Неочікуваний подарунок",
+    "data": {
+      "build": "novels/zdyvuvannya/index.html"
+    },
+    "image": "",
+    "audio": ""
+  }
+},
+{
+  "model": "lessons.exercise",
+  "pk": 9,
+  "fields": {
+    "level": 1,
+    "emotion": 1,
+    "type": "novel",
+    "order": 1,
+    "prompt": "Смачна цукерка",
+    "data": {
+      "build": "novels/radist/index.html"
+    },
+    "image": "",
+    "audio": ""
+  }
+},
+{
+  "model": "lessons.exercise",
+  "pk": 10,
+  "fields": {
+    "level": 2,
+    "emotion": 4,
+    "type": "novel",
+    "order": 1,
+    "prompt": "Спокійна бесіда",
+    "data": {
+      "build": "novels/spokiy/index.html"
+    },
+    "image": "",
+    "audio": ""
+  }
+},
+{
+  "model": "lessons.exercise",
+  "pk": 11,
+  "fields": {
+    "level": 1,
+    "emotion": 3,
+    "type": "face",
+    "order": 5,
+    "prompt": "Що відчуває ця людина?",
+    "data": {
+      "options": [
+        "радість",
+        "здивування",
+        "злість",
+        "страх"
+      ],
+      "correct": "злість",
+      "explanation": "брови насуплені і опущені вниз, щелепа стиснута."
+    },
+    "image": "exercises/a-man-in-a-suit-and-tie-is-making-an-angry-face-photo.jpg",
+    "audio": ""
+  }
+},
+{
+  "model": "lessons.exercise",
+  "pk": 12,
+  "fields": {
+    "level": 3,
+    "emotion": 6,
+    "type": "face",
+    "order": 3,
+    "prompt": "Яку емоцію ти бачиш на обличчі?",
+    "data": {
+      "options": [
+        "страх",
+        "радість",
+        "злість"
+      ],
+      "correct": "страх",
+      "explanation": "Очі широко розплющені, брови підняті, рот трохи відкритий, а руки притиснуті до обличчя."
+    },
+    "image": "exercises/pngtree-shocked-and-scared-man-with-hands-on-his-face-reacting-to-png-image_18711483.png",
+    "audio": ""
+  }
+},
+{
+  "model": "lessons.exercise",
+  "pk": 13,
+  "fields": {
+    "level": 3,
+    "emotion": 7,
+    "type": "face",
+    "order": 6,
+    "prompt": "Яку емоцію ти бачиш на обличчі чоловіка?",
+    "data": {
+      "options": [
+        "сум",
+        "сором",
+        "злість"
+      ],
+      "correct": "сором",
+      "explanation": "Він дивиться вбік, зжав губи, і ніяково чеше потилицю."
+    },
+    "image": "exercises/360_F_326801707_4416vv1qXIuht2OoP7HpdOPjOkPHvRvp.jpg",
+    "audio": ""
+  }
+},
+{
+  "model": "lessons.exercise",
+  "pk": 15,
+  "fields": {
+    "level": 1,
+    "emotion": 1,
+    "type": "match",
+    "order": 2,
+    "prompt": "знайди пару",
+    "data": {
+      "pairs": [
+        {
+          "left": "Страх",
+          "right": "бу"
+        },
+        {
+          "left": "Сором",
+          "right": "онееет"
+        }
+      ],
+      "explanation": "патамушта"
+    },
+    "image": "",
+    "audio": ""
+  }
+},
+{
+  "model": "lessons.exercise",
+  "pk": 16,
+  "fields": {
+    "level": 1,
+    "emotion": 3,
+    "type": "scale",
+    "order": 2,
+    "prompt": "наскільки сильна емоція",
+    "data": {
+      "situation": "ти розбив вазон",
+      "labels": [
+        "зовсім ні",
+        "трохи",
+        "помірно",
+        "сильно",
+        "дуже сильно"
+      ],
+      "correct": [
+        4,
+        5
+      ],
+      "explanation": "патамц шо"
+    },
+    "image": "",
+    "audio": ""
+  }
+},
+{
+  "model": "lessons.readingline",
+  "pk": 1,
+  "fields": {
+    "exercise": 5,
+    "order": 1,
+    "text": "агов, друже! скільки років, скільки зим",
+    "audio": "reading/audio/Запис_apXATry.m4a",
+    "emotion": 1,
+    "delivery": "ти давно не бачився із другом, говори радісно , із посмішкою",
+    "image": "reading/images/оууу_да.jpg"
+  }
+},
+{
+  "model": "lessons.readingline",
+  "pk": 2,
+  "fields": {
+    "exercise": 5,
+    "order": 2,
+    "text": "як же я радий тебе бачити",
+    "audio": "reading/audio/Запис_3_QzgzMUZ.m4a",
+    "emotion": 1,
+    "delivery": "ти давно не бачився із другом, говори радісно , із посмішкою",
+    "image": "reading/images/photo_2026-05-24_00-07-13.jpg"
+  }
+}
+]
