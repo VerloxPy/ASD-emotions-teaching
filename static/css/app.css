@@ -375,21 +375,14 @@ body.reduce-motion *, body.reduce-motion *::before, body.reduce-motion *::after 
 }
 .novel-hint { display: none; text-align: center; font-size: .9rem; color: #5b6b7a; }
 
-/* Телефон: новела на всю ширину екрана, поза відступами картки */
-@media (max-width: 700px) {
-  .novel-wrap {
-    width: 100vw;
-    position: relative;
-    left: 50%;
-    margin-left: -50vw;
-    border-radius: 0;
-  }
-}
 /* Телефон: менші відступи картки, новела лишається всередині рамки */
 @media (max-width: 700px) {
   .novel-sheet { padding: 1rem .6rem; }
   .novel-sheet .question { padding-inline: .4rem; }
   .novel-wrap { border-radius: 14px; }
+}
+@media (max-width: 700px) and (orientation: portrait) {
+  .novel-hint { display: block; }
 }
 
 /* У повноекранному режимі */
