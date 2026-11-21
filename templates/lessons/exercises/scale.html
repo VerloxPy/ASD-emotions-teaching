@@ -5,7 +5,9 @@
 <section class="sheet">
   <h1 class="question">{{ exercise.prompt }}</h1>
   <p class="situation">{{ exercise.data.situation }}</p>
-
+  {% if exercise.image %}
+    <img class="exercise-image" src="{{ exercise.image.url }}" alt="Зображення до вправи">
+  {% endif %}
   <form class="scale"
         {% if exercise.emotion %}style="--emotion: {{ exercise.emotion.display_color }}"{% endif %}
         hx-post="{% url 'lessons:scale_answer' exercise.id %}"
