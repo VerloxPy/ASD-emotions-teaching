@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+{% block title %}Вправа{% endblock %}
+{% block topbar %}{% include "partials/_lessonbar.html" %}{% endblock %}
+{% block content %}
+<section class="sheet">
+  <h1 class="question">{{ exercise.prompt }}</h1>
+  <p class="situation">{{ exercise.data.situation }}</p>
+
+  <form class="scale"
+        {% if exercise.emotion %}style="--emotion: {{ exercise.emotion.display_color }}"{% endif %}
+        hx-post="{% url 'lessons:scale_answer' exercise.id %}"
+        hx-target="#feedback" hx-swap="innerHTML"
+        hx-on::after-request="afterAnswer(this, event)">
+    {% csrf_token %}
+    <ol class="scale-steps">
+      {% for label in exercise.data.labels %}
+        <li>
+          <button type="submit" class="scale-step" name="choice" value="{{ forloop.counter0 }}" style="--level: {{ forloop.counter }}">
+            <span class="scale-bar" aria-hidden="true"></span>
+            <span class="scale-label">{{ label }}</span>
+          </button>
+        </li>
+      {% endfor %}
+    </ol>
+  </form>
+
+  <div id="feedback" class="feedback" aria-live="polite"></div>
+</section>
+
+<script>
+  document.querySelector(".scale").addEventListener("click", function (e) {
+    var button = e.target.closest("button[name=choice]");
+    if (button) button.classList.add("is-chosen");
+  });
+</script>
+{% endblock %}

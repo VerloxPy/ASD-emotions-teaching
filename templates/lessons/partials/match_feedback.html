@@ -1,0 +1,6 @@
+<div class="fb fb-ok">
+  <p class="fb-title">Чудово, усі пари знайдено!</p>
+  {% if mistakes %}<p>Було кілька спроб, і це нормально: так ми вчимося.</p>{% endif %}
+  {% if explanation %}<p>{{ explanation }}</p>{% endif %}
+  {% include "lessons/partials/_next.html" %}
+</div>

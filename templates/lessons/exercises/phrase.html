@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+{% block title %}Вправа{% endblock %}
+{% block topbar %}{% include "partials/_lessonbar.html" %}{% endblock %}
+{% block content %}
+<section class="sheet">
+  <h1 class="question">{{ exercise.prompt }}</h1>
+  <p class="situation">{{ exercise.data.situation }}</p>
+
+  <form class="options"
+        hx-post="{% url 'lessons:phrase_answer' exercise.id %}"
+        hx-target="#feedback" hx-swap="innerHTML"
+        hx-on::after-request="afterPhrase(this, event)">
+    {% csrf_token %}
+    {% for option in exercise.data.options %}
+      <button type="submit" class="option" name="choice" value="{{ forloop.counter0 }}">{{ option.text }}</button>
+    {% endfor %}
+  </form>
+
+  <div id="feedback" class="feedback" aria-live="polite"></div>
+</section>
+
+<script>
+  var phraseForm = document.querySelector(".options");
+  phraseForm.addEventListener("click", function (e) {
+    var button = e.target.closest("button[name=choice]");
+    if (button) button.classList.add("is-chosen");
+  });
+
+  // Доречна фраза завершує крок. Недоречну позначаємо, але лишаємо інші для нової спроби.
+  window.afterPhrase = function (form, event) {
+    if (!event.detail || !event.detail.successful) return;
+    var xhr = event.detail.xhr;
+    var fits = xhr.getResponseHeader("X-Fits") === "1";
+    if (fits) {
+      form.querySelectorAll("button").forEach(function (b) { b.disabled = true; });
+      window.markStepDone(parseInt(xhr.getResponseHeader("X-Step-Index"), 10));
+      return;
+    }
+    var tried = form.querySelector('button[value="' + xhr.getResponseHeader("X-Choice") + '"]');
+    if (tried) {
+      tried.classList.remove("is-chosen");
+      tried.classList.add("is-tried");
+      tried.disabled = true;
+    }
+  };
+</script>
+{% endblock %}

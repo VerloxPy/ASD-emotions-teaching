@@ -1,0 +1,12 @@
+{% if is_correct %}
+  <div class="fb fb-ok">
+    <p class="fb-title">Так, схоже!</p>
+{% else %}
+  <div class="fb fb-try">
+    <p class="fb-title">Тут зазвичай відчувають трохи інакше.</p>
+    <p>Найчастіше: {{ typical }}.</p>
+{% endif %}
+    {% if explanation %}<p>{{ explanation }}</p>{% endif %}
+    <p>Усі люди відчувають по-різному. Про це можна поговорити з дорослим.</p>
+    {% include "lessons/partials/_next.html" %}
+  </div>

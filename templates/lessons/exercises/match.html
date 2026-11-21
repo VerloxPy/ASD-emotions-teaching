@@ -1,0 +1,106 @@
+{% extends "base.html" %}
+{% block title %}Вправа{% endblock %}
+{% block topbar %}{% include "partials/_lessonbar.html" %}{% endblock %}
+{% block content %}
+<section class="sheet" id="match">
+  <h1 class="question">{{ exercise.prompt }}</h1>
+  <p class="help">Торкнися картки ліворуч, а потім відповідної картки праворуч.</p>
+
+  <div class="match-board">
+    <ul class="match-col" id="left-col">
+      {% for pair in exercise.data.pairs %}
+        <li><button type="button" class="match-card is-left" data-side="left" data-pair="{{ forloop.counter0 }}">{{ pair.left }}</button></li>
+      {% endfor %}
+    </ul>
+    <ul class="match-col" id="right-col">
+      {% for pair in exercise.data.pairs %}
+        <li><button type="button" class="match-card" data-side="right" data-pair="{{ forloop.counter0 }}">{{ pair.right }}</button></li>
+      {% endfor %}
+    </ul>
+  </div>
+
+  <p class="match-note" id="match-note" aria-live="polite"></p>
+  <div id="feedback" class="feedback" aria-live="polite"></div>
+</section>
+
+<script>
+(function () {
+  var board = document.getElementById("match");
+  var leftCol = document.getElementById("left-col");
+  var rightCol = document.getElementById("right-col");
+  var note = document.getElementById("match-note");
+  var feedback = document.getElementById("feedback");
+  var palette = ["#F2C14E", "#6FA8DC", "#E58F76", "#A596CF", "#68BBA9", "#E5A0BC"];
+  var total = leftCol.children.length;
+  var selected = null, matched = 0, mistakes = 0;
+
+  // Праві картки перемішуємо, щоб пари не стояли навпроти одна одної.
+  function shuffle(list) {
+    for (var i = list.length - 1; i > 0; i--) {
+      var j = Math.floor(Math.random() * (i + 1));
+      var tmp = list[i]; list[i] = list[j]; list[j] = tmp;
+    }
+    return list;
+  }
+  var items = Array.prototype.slice.call(rightCol.children);
+  var shuffled = shuffle(items.slice());
+  if (total > 2 && shuffled.every(function (el, i) { return el === items[i]; })) shuffled.push(shuffled.shift());
+  shuffled.forEach(function (el) { rightCol.appendChild(el); });
+
+  function select(card) {
+    selected = card;
+    card.classList.add("is-selected");
+    card.setAttribute("aria-pressed", "true");
+  }
+  function clearSelection() {
+    if (selected) {
+      selected.classList.remove("is-selected");
+      selected.setAttribute("aria-pressed", "false");
+    }
+    selected = null;
+  }
+
+  async function finish() {
+    try {
+      var response = await fetch("{% url 'lessons:match_result' exercise.id %}", {
+        method: "POST",
+        headers: {"Content-Type": "application/json", "X-CSRFToken": "{{ csrf_token }}"},
+        body: JSON.stringify({ pairs: total, mistakes: mistakes }),
+      });
+      if (!response.ok) throw new Error("server");
+      feedback.innerHTML = await response.text();
+      window.markStepDone(parseInt(response.headers.get("X-Step-Index"), 10));
+    } catch (error) {
+      console.error(error);
+      feedback.textContent = "Не вдалося зберегти результат. Оновіть сторінку й спробуйте ще раз.";
+    }
+  }
+
+  board.addEventListener("click", function (event) {
+    var card = event.target.closest(".match-card");
+    if (!card || card.disabled) return;
+    note.textContent = "";
+    if (!selected) { select(card); return; }
+    if (selected === card) { clearSelection(); return; }
+    if (selected.dataset.side === card.dataset.side) { clearSelection(); select(card); return; }
+
+    if (selected.dataset.pair === card.dataset.pair) {
+      var color = palette[matched % palette.length];
+      [selected, card].forEach(function (el) {
+        el.classList.remove("is-selected");
+        el.classList.add("is-matched");
+        el.style.setProperty("--pair", color);
+        el.disabled = true;
+      });
+      selected = null;
+      matched += 1;
+      if (matched === total) finish();
+    } else {
+      mistakes += 1;
+      note.textContent = "Ця пара не зовсім підходить. Спробуй ще раз.";
+      clearSelection();
+    }
+  });
+})();
+</script>
+{% endblock %}
