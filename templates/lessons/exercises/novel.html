@@ -2,7 +2,7 @@
 {% block title %}Історія{% endblock %}
 {% block topbar %}{% include "partials/_lessonbar.html" %}{% endblock %}
 {% block content %}
-<section class="sheet">
+<section class="sheet novel-sheet">
   <h1 class="question">{{ exercise.prompt }}</h1>
 
   <div class="novel-wrap" id="novelWrap">
@@ -27,6 +27,12 @@ window.addEventListener("message", async function (event) {
   document.getElementById("feedback").innerHTML = await response.text();
   var index = parseInt(response.headers.get("X-Step-Index"), 10);
   window.markStepDone(index);
+
+  // Вихід з повного екрана, щоб було видно відповідь і кнопку «Далі»
+  if (document.fullscreenElement) {
+    try { await document.exitFullscreen(); } catch (e) {}
+  }
+  document.getElementById("feedback").scrollIntoView({behavior: "smooth", block: "start"});
 });
 
 // Повний екран + ландшафт (Android/Chrome). На iOS Safari fullscreen для блоку недоступний.
@@ -34,16 +40,24 @@ window.addEventListener("message", async function (event) {
   var wrap = document.getElementById("novelWrap");
   var btn = document.getElementById("novelFs");
   if (!wrap.requestFullscreen) { btn.hidden = true; return; }
+
   btn.addEventListener("click", async function () {
     try {
+      if (document.fullscreenElement) {
+        await document.exitFullscreen();
+        return;
+      }
       await wrap.requestFullscreen();
       if (screen.orientation && screen.orientation.lock) {
         await screen.orientation.lock("landscape").catch(function () {});
       }
     } catch (e) {}
   });
+
   document.addEventListener("fullscreenchange", function () {
-    if (!document.fullscreenElement && screen.orientation && screen.orientation.unlock) {
+    var full = !!document.fullscreenElement;
+    btn.textContent = full ? "✕ Вийти" : "⛶ На весь екран";
+    if (!full && screen.orientation && screen.orientation.unlock) {
       screen.orientation.unlock();
     }
   });

@@ -385,8 +385,11 @@ body.reduce-motion *, body.reduce-motion *::before, body.reduce-motion *::after 
     border-radius: 0;
   }
 }
-@media (max-width: 700px) and (orientation: portrait) {
-  .novel-hint { display: block; }
+/* Телефон: менші відступи картки, новела лишається всередині рамки */
+@media (max-width: 700px) {
+  .novel-sheet { padding: 1rem .6rem; }
+  .novel-sheet .question { padding-inline: .4rem; }
+  .novel-wrap { border-radius: 14px; }
 }
 
 /* У повноекранному режимі */
