@@ -5,7 +5,11 @@
 <section class="sheet">
   <h1 class="question">{{ exercise.prompt }}</h1>
 
-  <iframe class="novel-frame" id="novel" src="{{ novel_url }}" title="{{ exercise.prompt }}"></iframe>
+  <div class="novel-wrap" id="novelWrap">
+    <iframe class="novel-frame" id="novel" src="{{ novel_url }}" title="{{ exercise.prompt }}" allow="fullscreen"></iframe>
+    <button type="button" class="novel-fs" id="novelFs" aria-label="На весь екран">⛶ На весь екран</button>
+  </div>
+  <p class="novel-hint">Для зручності поверни телефон горизонтально 📱</p>
 
   <div id="feedback" class="feedback" aria-live="polite"></div>
 </section>
@@ -24,5 +28,25 @@ window.addEventListener("message", async function (event) {
   var index = parseInt(response.headers.get("X-Step-Index"), 10);
   window.markStepDone(index);
 });
+
+// Повний екран + ландшафт (Android/Chrome). На iOS Safari fullscreen для блоку недоступний.
+(function () {
+  var wrap = document.getElementById("novelWrap");
+  var btn = document.getElementById("novelFs");
+  if (!wrap.requestFullscreen) { btn.hidden = true; return; }
+  btn.addEventListener("click", async function () {
+    try {
+      await wrap.requestFullscreen();
+      if (screen.orientation && screen.orientation.lock) {
+        await screen.orientation.lock("landscape").catch(function () {});
+      }
+    } catch (e) {}
+  });
+  document.addEventListener("fullscreenchange", function () {
+    if (!document.fullscreenElement && screen.orientation && screen.orientation.unlock) {
+      screen.orientation.unlock();
+    }
+  });
+})();
 </script>
 {% endblock %}

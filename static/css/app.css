@@ -159,7 +159,6 @@ img { max-width: 100%; }
 
 .question { font-size: 1.5rem; }
 .exercise-image { display: block; max-height: 20rem; margin: 1rem auto; border-radius: var(--radius); }
-.novel-frame { width: 100%; aspect-ratio: 16 / 9; border: 0; border-radius: var(--radius); background: #222; }
 
 .options { display: grid; gap: .75rem; margin-top: 1.25rem; }
 .option {
@@ -344,3 +343,59 @@ body.reduce-motion *, body.reduce-motion *::before, body.reduce-motion *::after 
   .scale-bar { width: calc(var(--level) * 2.2rem); height: 1rem; max-width: 55%; border-radius: 8px; flex: none; }
   .scale-label { text-align: left; font-size: .95rem; }
 }
+
+/* ===== Новела ===== */
+.novel-wrap {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  background: #000;
+  border-radius: 16px;
+  overflow: hidden;
+}
+.novel-frame {
+  width: 100%;
+  height: 100%;
+  border: 0;
+  display: block;
+}
+.novel-fs {
+  position: absolute;
+  right: 8px;
+  bottom: 8px;
+  z-index: 2;
+  padding: 6px 10px;
+  border: 0;
+  border-radius: 999px;
+  background: rgba(0, 0, 0, .55);
+  color: #fff;
+  font: inherit;
+  font-size: .85rem;
+  cursor: pointer;
+}
+.novel-hint { display: none; text-align: center; font-size: .9rem; color: #5b6b7a; }
+
+/* Телефон: новела на всю ширину екрана, поза відступами картки */
+@media (max-width: 700px) {
+  .novel-wrap {
+    width: 100vw;
+    position: relative;
+    left: 50%;
+    margin-left: -50vw;
+    border-radius: 0;
+  }
+}
+@media (max-width: 700px) and (orientation: portrait) {
+  .novel-hint { display: block; }
+}
+
+/* У повноекранному режимі */
+.novel-wrap:fullscreen {
+  width: 100vw;
+  height: 100vh;
+  aspect-ratio: auto;
+  margin: 0;
+  left: 0;
+  border-radius: 0;
+}
+.novel-wrap:fullscreen .novel-frame { width: 100%; height: 100%; }
